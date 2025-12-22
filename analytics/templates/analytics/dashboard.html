@@ -1,0 +1,196 @@
+{% extends "analytics/base.html" %}
+{% block content %}
+
+<h2 class="text-2xl font-semibold mb-8">Dashboard</h2>
+
+<!-- ================= METRICS ================= -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+  <div class="bg-gray-900 border border-gray-800 p-6 rounded-xl">
+    <p class="text-sm text-gray-400">Total Rows</p>
+    <p class="text-3xl font-bold mt-2">{{ total_rows }}</p>
+  </div>
+
+  <div class="bg-gray-900 border border-gray-800 p-6 rounded-xl">
+    <p class="text-sm text-gray-400">Total Columns</p>
+    <p class="text-3xl font-bold mt-2">{{ total_cols }}</p>
+  </div>
+
+  <div class="bg-gray-900 border border-gray-800 p-6 rounded-xl">
+    <p class="text-sm text-gray-400">Missing Values</p>
+    <p class="text-3xl font-bold mt-2">{{ missing_values }}</p>
+  </div>
+</div>
+
+<!-- ================= DATA CLEANING ================= -->
+<div class="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-10">
+  <h3 class="text-lg font-semibold mb-4">Data Cleaning</h3>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <label class="flex items-center gap-2 mb-2">
+      <input type="checkbox" name="remove_duplicates">
+      Remove duplicate rows
+    </label>
+
+    <label class="flex items-center gap-2 mb-4">
+      <input type="checkbox" name="fill_missing">
+      Fill missing values
+    </label>
+
+    <button class="px-4 py-2 bg-indigo-600 rounded">
+      Apply Cleaning
+    </button>
+  </form>
+</div>
+
+<!-- ================= DOWNLOADS ================= -->
+<div class="mb-8">
+  <a href="{% url 'download_csv' %}"
+     class="inline-block px-4 py-2 bg-green-600 rounded mr-3">
+     Download Raw Dataset
+  </a>
+
+  {% if request.session.cleaned_dataset_path %}
+  <a href="{% url 'download_cleaned_csv' %}"
+     class="inline-block px-4 py-2 bg-blue-600 rounded">
+     Download Cleaned Dataset
+  </a>
+  {% endif %}
+</div>
+
+<!-- ================= DATA PREVIEW ================= -->
+<div class="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-10">
+  <h3 class="text-lg font-semibold mb-4">Data Preview</h3>
+
+  <div class="overflow-x-auto">
+    {{ table_html|safe }}
+  </div>
+</div>
+
+<!-- ================= VISUALIZATION ================= -->
+<div class="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-10">
+  <h3 class="text-lg font-semibold mb-4">Visualization</h3>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+      <div>
+        <label class="text-sm text-gray-400">Chart Type</label>
+        <select name="chart_type" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2">
+          <option value="">Select</option>
+          <option value="bar" {% if chart_type == "bar" %}selected{% endif %}>Bar</option>
+          <option value="line" {% if chart_type == "line" %}selected{% endif %}>Line</option>
+          <option value="area" {% if chart_type == "area" %}selected{% endif %}>Area</option>
+          <option value="histogram" {% if chart_type == "histogram" %}selected{% endif %}>Histogram</option>
+          <option value="pie" {% if chart_type == "pie" %}selected{% endif %}>Pie</option>
+          <option value="box" {% if chart_type == "box" %}selected{% endif %}>Box</option>
+          <option value="scatter" {% if chart_type == "scatter" %}selected{% endif %}>Scatter</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="text-sm text-gray-400">Metric</label>
+        <select name="metric" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2">
+          <option value="">Select</option>
+          {% for col in numeric_cols %}
+            <option value="{{ col }}" {% if metric == col %}selected{% endif %}>
+              {{ col }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="text-sm text-gray-400">Dimension</label>
+        <select name="dimension" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2">
+          <option value="">Select</option>
+          {% for col in categorical_cols %}
+            <option value="{{ col }}" {% if dimension == col %}selected{% endif %}>
+              {{ col }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+    </div>
+
+    <button class="mt-4 px-4 py-2 bg-indigo-600 rounded">
+      Generate Chart
+    </button>
+  </form>
+
+  {% if chart_html %}
+    <div class="mt-6">
+      {{ chart_html|safe }}
+    </div>
+  {% endif %}
+</div>
+
+<!-- ================= GENERATED CHARTS ================= -->
+{% if charts %}
+<div class="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-10">
+  <h3 class="text-lg font-semibold mb-4">Generated Charts</h3>
+
+  <form method="post" action="{% url 'export_report_pdf' %}">
+    {% csrf_token %}
+
+    {% for chart in charts %}
+      <div class="mb-6 border border-gray-700 p-4 rounded">
+        <label class="flex items-center gap-2 mb-2 text-sm">
+          <input type="checkbox" name="selected_charts" value="{{ forloop.counter0 }}">
+          Include in PDF
+        </label>
+
+        <p class="text-sm text-gray-300 mb-2">
+          {{ chart.title }} ({{ chart.chart_type|upper }})
+        </p>
+
+        <img src="/media/{{ chart.image|cut:'media/' }}"
+             class="max-w-md rounded border">
+      </div>
+    {% endfor %}
+
+    <button class="mt-4 px-5 py-2 bg-red-600 rounded">
+      Export Selected Charts to PDF
+    </button>
+  </form>
+</div>
+{% endif %}
+
+
+<!-- ================= INSIGHTS ================= -->
+<div class="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-10">
+  <h3 class="text-lg font-semibold mb-4">Auto Insights</h3>
+
+  <ul class="list-disc pl-5 space-y-2 text-sm">
+    {% for insight in insights %}
+      <li>{{ insight }}</li>
+    {% endfor %}
+  </ul>
+</div>
+
+<!-- ================= WARNINGS ================= -->
+{% if warnings %}
+<div class="bg-gray-900 border border-yellow-700 rounded-xl p-6 mb-10">
+  <h3 class="text-lg font-semibold mb-4 text-yellow-400">Data Warnings</h3>
+
+  <ul class="list-disc pl-5 space-y-2 text-sm">
+    {% for warning in warnings %}
+      <li>{{ warning }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<!-- ================= PDF EXPORT ================= -->
+<div class="mb-10">
+  <a href="{% url 'export_report_pdf' %}"
+     class="inline-block px-5 py-2 bg-red-600 rounded">
+     Export PDF Report
+  </a>
+</div>
+
+{% endblock %}

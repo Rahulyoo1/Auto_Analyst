@@ -1,0 +1,97 @@
+{% extends "analytics/base.html" %}
+{% block content %}
+
+<div class="min-h-screen flex items-center justify-center bg-black text-white">
+
+  <div class="w-full max-w-xl text-center px-6">
+
+    <!-- PROJECT TITLE -->
+    <h1 class="text-5xl font-extrabold mb-4 tracking-wide">
+      Auto <span class="text-indigo-500">Analyst</span>
+    </h1>
+
+    <!-- SUBTITLE -->
+    <p class="text-gray-400 text-lg mb-10">
+      Upload your dataset and instantly explore insights, trends,
+      visualizations, and reports — automatically.
+    </p>
+
+    <!-- UPLOAD CARD -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 shadow-xl
+                transition transform hover:scale-[1.02] duration-300">
+
+      <h2 class="text-xl font-semibold mb-6">
+        Upload Your Dataset
+      </h2>
+
+      <form method="post" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- CLICKABLE UPLOAD AREA -->
+        <label
+          class="flex flex-col items-center justify-center w-full h-40
+                 border-2 border-dashed border-gray-700 rounded-xl
+                 cursor-pointer hover:border-indigo-500
+                 transition duration-300">
+
+          <svg class="w-10 h-10 mb-3 text-gray-400"
+               fill="none" stroke="currentColor" stroke-width="2"
+               viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M7 16V4a1 1 0 011-1h8a1 1 0 011 1v12M5 20h14a1 1 0 001-1v-3H4v3a1 1 0 001 1z" />
+          </svg>
+
+         <span id="file-name" class="text-sm text-gray-400">
+  Click to upload CSV file
+</span>
+
+
+          <!-- 🔥 HIDDEN FILE INPUT (FIXED) -->
+          <input
+  type="file"
+  name="file"
+  id="id_file"
+  accept=".csv"
+  class="hidden"
+  required
+/>
+
+
+        </label>
+
+        <!-- BUTTON -->
+        <button
+          type="submit"
+          class="w-full py-3 rounded-xl bg-indigo-600
+                 hover:bg-indigo-700 transition duration-300
+                 font-semibold text-lg">
+
+          Analyze Dataset
+        </button>
+
+      </form>
+    </div>
+
+    <!-- FOOTER -->
+    <p class="text-gray-500 text-sm mt-8">
+      Supported format: CSV • Secure • No data stored permanently
+    </p>
+
+  </div>
+
+</div>
+
+<script>
+  const fileInput = document.getElementById("id_file");
+  const fileNameSpan = document.getElementById("file-name");
+
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files.length > 0) {
+      fileNameSpan.textContent = fileInput.files[0].name;
+      fileNameSpan.classList.remove("text-gray-400");
+      fileNameSpan.classList.add("text-green-400", "font-medium");
+    }
+  });
+</script>
+
+{% endblock %}

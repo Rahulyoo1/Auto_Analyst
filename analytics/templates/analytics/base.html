@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AutoAnalyst</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Custom Table Styling -->
+ <style>
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th {
+    color: #c7d2fe;
+    padding: 10px;
+    border-bottom: 1px solid #374151;
+  }
+  td {
+    color: #e5e7eb;
+    padding: 10px;
+    border-bottom: 1px solid #374151;
+    word-break: break-word;
+  }
+</style>
+
+</head>
+
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+
+  <!-- NAVBAR -->
+<nav class="bg-gray-900 border-b border-gray-800 px-6 py-4 flex justify-between items-center">
+
+  <!-- LEFT: PROJECT NAME -->
+  <h1 class="text-2xl font-extrabold tracking-wide">
+    Auto <span class="text-indigo-500">Analyst</span>
+  </h1>
+
+  <!-- RIGHT: TAGLINE -->
+  <span class="text-sm text-gray-400">
+    AI Powered Data Analyst
+  </span>
+
+</nav>
+
+
+  <!-- MAIN CONTENT -->
+  <main class="p-6 max-w-7xl mx-auto">
+    {% block content %}{% endblock %}
+  </main>
+
+<script>
+  const forms = document.querySelectorAll("form");
+  forms.forEach(form => {
+    form.addEventListener("submit", () => {
+      document.body.classList.add("opacity-50");
+    });
+  });
+</script>
+
+</body>
+</html>
