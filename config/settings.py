@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECRET_KEY = 'django-insecure-....'
 
 #  NEW (from .env or Railway)
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret")
 
 
 # new debug
@@ -33,7 +33,7 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 
 
 #  NEW
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
 
 # ===============================
@@ -135,3 +135,5 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # ===============================
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
