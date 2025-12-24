@@ -1,6 +1,6 @@
 Django>=5.2
 pandas
 plotly
-xhtml2pdf
+xhtml2pdf==0.2.13
 kaleido
 gunicorn
