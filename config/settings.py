@@ -33,7 +33,13 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 
 
 #  NEW
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
+ALLOWED_HOSTS = [
+    "web-production-acbd4.up.railway.app",
+    ".railway.app",
+    "localhost",
+    "127.0.0.1",
+]
+
 
 
 # ===============================
