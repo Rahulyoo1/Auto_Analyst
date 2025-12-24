@@ -4,9 +4,8 @@ plotly
 kaleido
 gunicorn
 
-# PDF (PINNED – VERY IMPORTANT)
-xhtml2pdf==0.2.13
-reportlab==3.6.12
+# PDF (COMPATIBLE & RENDER-SAFE)
+xhtml2pdf==0.2.17
+reportlab==4.0.4
 
-# env
 python-dotenv
