@@ -1,6 +1,10 @@
-Django>=5.2
+Django>=5.2,<6.1
 pandas
 plotly
-xhtml2pdf==0.2.13
 kaleido
 gunicorn
+
+# PDF generation (NO pycairo)
+xhtml2pdf==0.2.13
+reportlab==4.0.4
+svglib==1.5.1
