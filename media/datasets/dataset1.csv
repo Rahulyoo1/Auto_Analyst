@@ -1,9 +1,0 @@
-EmployeeID,Name,Department,Age,Salary
-101,Rahul,IT,23.0,45000.0
-102,Anita,HR,25.0,40000.0
-103,Amit,IT,,50000.0
-104,Neha,Finance,28.0,
-105,Rohit,IT,23.0,45000.0
-102,Anita,HR,25.0,40000.0
-106,Priya,Finance,,48000.0
-107,,HR,26.0,42000.0
