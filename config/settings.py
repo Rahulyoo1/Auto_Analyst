@@ -32,6 +32,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
 
+
 #  NEW
 ALLOWED_HOSTS = [
     "web-production-acbd4.up.railway.app",
@@ -41,6 +42,7 @@ ALLOWED_HOSTS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
+    "https://web-production-acbd4.up.railway.app",
     "https://*.railway.app",
 ]
 
