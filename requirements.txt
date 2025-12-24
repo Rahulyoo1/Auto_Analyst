@@ -1,7 +1,12 @@
-Django>=5.2
-gunicorn
+Django>=5.2,<6.0
 pandas
 plotly
 kaleido
+gunicorn
+
+# PDF (PINNED – VERY IMPORTANT)
 xhtml2pdf==0.2.13
+reportlab==3.6.12
+
+# env
 python-dotenv
