@@ -25,7 +25,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECRET_KEY = 'django-insecure-....'
 
 #  NEW (from .env or Railway)
-SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret")
+SECRET_KEY = os.getenv("SECRET_KEY", "unsafe-dev-key")
+
 
 
 # new debug
@@ -35,15 +36,13 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 
 #  NEW
 ALLOWED_HOSTS = [
-    "web-production-acbd4.up.railway.app",
-    ".railway.app",
     "localhost",
     "127.0.0.1",
+    ".onrender.com",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://web-production-acbd4.up.railway.app",
-    "https://*.railway.app",
+    "https://*.onrender.com",
 ]
 
 
