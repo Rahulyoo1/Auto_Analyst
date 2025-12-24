@@ -137,15 +137,24 @@ def upload_page(request):
     if request.method == "GET":
         request.session.flush()
 
+    # -------------------------------
+    # FILE UPLOAD
+    # -------------------------------
     if request.method == "POST" and "file" in request.FILES:
         form = DatasetUploadForm(request.POST, request.FILES)
         if form.is_valid():
             dataset = form.save()
-            request.session["dataset_path"] = dataset.file.path
+
+            # ✅ STORE ONLY FILE NAME (NOT ABSOLUTE PATH)
+            request.session["dataset_name"] = os.path.basename(dataset.file.path)
             request.session.pop("cleaned_dataset_path", None)
 
-    dataset_path = request.session.get("dataset_path")
+    dataset_name = request.session.get("dataset_name")
     cleaned_path = request.session.get("cleaned_dataset_path")
+
+    dataset_path = None
+    if dataset_name:
+        dataset_path = os.path.join(settings.MEDIA_ROOT, "datasets", dataset_name)
 
     if not dataset_path or not os.path.exists(dataset_path):
         return render(request, "analytics/upload.html", {
@@ -160,6 +169,9 @@ def upload_page(request):
     else:
         df = pd.read_csv(dataset_path)
 
+    # -------------------------------
+    # DATA CLEANING
+    # -------------------------------
     remove_duplicates = request.POST.get("remove_duplicates")
     fill_missing = request.POST.get("fill_missing")
 
@@ -176,14 +188,18 @@ def upload_page(request):
                 else:
                     cleaned_df[col] = cleaned_df[col].fillna(cleaned_df[col].mean())
 
-        cleaned_dir = settings.MEDIA_ROOT / "cleaned"
-        cleaned_dir.mkdir(exist_ok=True)
-        cleaned_file_path = cleaned_dir / "cleaned_dataset.csv"
+        cleaned_dir = os.path.join(settings.MEDIA_ROOT, "cleaned")
+        os.makedirs(cleaned_dir, exist_ok=True)
+
+        cleaned_file_path = os.path.join(cleaned_dir, "cleaned_dataset.csv")
         cleaned_df.to_csv(cleaned_file_path, index=False)
 
-        request.session["cleaned_dataset_path"] = str(cleaned_file_path)
+        request.session["cleaned_dataset_path"] = cleaned_file_path
         df = restore_integer_columns(cleaned_df)
 
+    # -------------------------------
+    # METRICS + TABLE
+    # -------------------------------
     insights = generate_insights(df)
     warnings = detect_data_warnings(df)
 
@@ -202,6 +218,9 @@ def upload_page(request):
     numeric_cols = df.select_dtypes(include="number").columns.tolist()
     categorical_cols = df.select_dtypes(include="object").columns.tolist()
 
+    # -------------------------------
+    # CHART GENERATION
+    # -------------------------------
     chart_type = request.POST.get("chart_type")
     metric = request.POST.get("metric")
     dimension = request.POST.get("dimension")
@@ -232,7 +251,10 @@ def upload_page(request):
 
         charts = request.session.get("charts", [])
         idx = len(charts) + 1
-        image_path = settings.MEDIA_ROOT / f"chart_{idx}.png"
+
+        os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
+
+        image_path = os.path.join(settings.MEDIA_ROOT, f"chart_{idx}.png")
         fig.write_image(image_path)
 
         charts.append({
@@ -240,7 +262,7 @@ def upload_page(request):
             "chart_type": chart_type,
             "metric": metric,
             "dimension": dimension,
-            "image": settings.MEDIA_URL + f"chart_{idx}.png"  # ✅ CHANGED
+            "image": settings.MEDIA_URL + f"chart_{idx}.png"
         })
 
         request.session["charts"] = charts
@@ -268,8 +290,12 @@ def upload_page(request):
 # DOWNLOAD RAW CSV
 # =========================================
 def download_csv(request):
-    path = request.session.get("dataset_path")
-    if not path or not os.path.exists(path):
+    dataset_name = request.session.get("dataset_name")
+    if not dataset_name:
+        return HttpResponse("No dataset available")
+
+    path = os.path.join(settings.MEDIA_ROOT, "datasets", dataset_name)
+    if not os.path.exists(path):
         return HttpResponse("No dataset available")
 
     with open(path, "rb") as f:
@@ -292,11 +318,10 @@ def download_cleaned_csv(request):
         return response
 
 
+# =========================================
+# PDF IMAGE LINK FIX
+# =========================================
 def link_callback(uri, rel):
-    """
-    Convert MEDIA_URL paths to absolute file system paths
-    so xhtml2pdf can load images correctly.
-    """
     if uri.startswith(settings.MEDIA_URL):
         return os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, ""))
     return uri
@@ -307,8 +332,12 @@ def link_callback(uri, rel):
 # =========================================
 def export_report_pdf(request):
 
-    dataset_path = request.session.get("dataset_path")
+    dataset_name = request.session.get("dataset_name")
     cleaned_path = request.session.get("cleaned_dataset_path")
+
+    dataset_path = None
+    if dataset_name:
+        dataset_path = os.path.join(settings.MEDIA_ROOT, "datasets", dataset_name)
 
     if cleaned_path and os.path.exists(cleaned_path):
         df = pd.read_csv(cleaned_path)
@@ -334,24 +363,14 @@ def export_report_pdf(request):
     warnings = detect_data_warnings(df)
 
     charts = request.session.get("charts", [])
-    for chart in charts:
-    # convert absolute path → MEDIA URL
-        chart["image"] = settings.MEDIA_URL + os.path.basename(chart["image"])
 
-    # -------------------------------------
-# FILTER SELECTED CHARTS
-# -------------------------------------
     selected_indexes = request.POST.getlist("selected_charts")
-
-    charts = request.session.get("charts", [])
-
     if selected_indexes:
         charts = [
-        charts[int(i)]
-        for i in selected_indexes
-        if i.isdigit() and int(i) < len(charts)
-    ]
-
+            charts[int(i)]
+            for i in selected_indexes
+            if i.isdigit() and int(i) < len(charts)
+        ]
 
     template = get_template("analytics/report.html")
     html = template.render({
@@ -368,9 +387,9 @@ def export_report_pdf(request):
     response["Content-Disposition"] = 'attachment; filename="analysis_report.pdf"'
 
     pisa.CreatePDF(
-    BytesIO(html.encode("UTF-8")),
-    dest=response,
-    link_callback=link_callback
-)
+        BytesIO(html.encode("UTF-8")),
+        dest=response,
+        link_callback=link_callback
+    )
 
     return response
